@@ -1,3 +1,6 @@
+import streamlit as st
+import random
+
 # 1. 페이지 기본 설정
 st.set_page_config(page_title="방구석 연애 코치", page_icon="💖", layout="centered")
 
@@ -19,7 +22,7 @@ situation = st.selectbox(
     ]
 )
 
-# 4. 코칭 조언 데이터베이스 (간단한 딕셔너리 형태)
+# 4. 코칭 조언 데이터베이스
 coaching_responses = {
     "짝사랑하는 사람에게 선톡 보내고 싶을 때": [
         "질문으로 끝나는 선톡이 좋습니다. '오늘 날씨 진짜 좋던데 주말에 뭐 해요?' 처럼 답장하기 쉬운 주제로 시작해 보세요!",
@@ -61,4 +64,3 @@ else:
 
 st.divider()
 st.caption("Made with ❤️ by 방구석 코치")
-st.write('바이브코딩 재미있다!!')
