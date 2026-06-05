@@ -1,66 +1,65 @@
 import streamlit as st
-import random
+import google.generativeai as genai
 
-# 1. 페이지 기본 설정
-st.set_page_config(page_title="방구석 연애 코치", page_icon="💖", layout="centered")
+# --- 1. 페이지 설정 ---
+st.set_page_config(page_title="연애 상담 챗봇", page_icon="💖")
+st.title("💖 마음을 들어주는 연애 상담소")
+st.caption("당신의 연애 고민을 편하게 이야기해주세요. 따뜻하고 현실적인 조언을 해드릴게요!")
 
-# 2. 앱 제목과 소개
-st.title("💖 방구석 AI 연애 코칭 앱")
-st.write("지금 당신의 연애 고민을 해결해 드립니다. 상황을 선택해 보세요!")
+# --- 2. API 키 설정 (Streamlit Secrets 사용) ---
+# Secrets에 키가 없는 경우를 위한 오류 처리
+if "GEMINI_API_KEY" not in st.secrets:
+    st.error("🔑 API 키가 설정되지 않았습니다. Streamlit Cloud 설정에서 Secrets를 추가해주세요.")
+    st.stop()
 
-st.divider()  # 구분선
+# Gemini API 설정
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
-# 3. 사용자 입력 받기 (상황 선택)
-situation = st.selectbox(
-    "현재 어떤 상황인가요?",
-    [
-        "선택하세요",
-        "짝사랑하는 사람에게 선톡 보내고 싶을 때",
-        "소개팅을 앞두고 무슨 말을 해야 할지 모를 때",
-        "연인과 말다툼 후 화해하고 싶을 때",
-        "상대방의 마음을 도저히 모르겠을 때"
-    ]
+# --- 3. 모델 설정 및 초기화 ---
+# 시스템 지침(System Instruction)을 통해 챗봇의 성격 부여
+system_instruction = """
+당신은 따뜻하고 공감 능력이 뛰어난 연애 상담사입니다. 
+내담자의 감정에 깊이 공감하되, 현실적이고 도움이 되는 조언을 부드럽게 전달해주세요. 
+친근하고 다정한 말투(해요체)를 사용하고, 너무 길지 않게 대화하듯 답변해주세요.
+"""
+
+# gemini-2.5-flash-lite 모델 인스턴스 생성
+model = genai.GenerativeModel(
+    model_name="gemini-2.5-flash-lite",
+    system_instruction=system_instruction
 )
 
-# 4. 코칭 조언 데이터베이스
-coaching_responses = {
-    "짝사랑하는 사람에게 선톡 보내고 싶을 때": [
-        "질문으로 끝나는 선톡이 좋습니다. '오늘 날씨 진짜 좋던데 주말에 뭐 해요?' 처럼 답장하기 쉬운 주제로 시작해 보세요!",
-        "상대방의 SNS(스토리 등)에 가벼운 리액션으로 시작하는 것이 가장 자연스럽습니다.",
-        "너무 거창한 이유를 찾지 마세요. '지나가다 이거 봤는데 네 생각나서!' 만큼 강력한 멘트도 없습니다."
-    ],
-    "소개팅을 앞두고 무슨 말을 해야 할지 모를 때": [
-        "리액션이 대화의 80%입니다. 상대방의 말을 집중해서 듣고 '아 진짜요? 대단하시다!'만 잘해도 호감도 상승!",
-        "상대방의 취향(음식, 취미, 최근 본 영화 등)을 물어보고, 공통점을 찾아보세요.",
-        "정적이 흐를 때는 최근 유행하는 가벼운 밸런스 게임을 제안해 보는 것도 좋은 아이스브레이킹입니다."
-    ],
-    "연인과 말다툼 후 화해하고 싶을 때": [
-        "'너 때문에'가 아니라 '내 기분은 이랬어'라는 'I-Message' 대화법을 사용해 보세요.",
-        "자존심 부리지 말고, 먼저 미안하다고 말하는 용기가 관계를 살립니다. '내가 그 부분은 생각이 짧았어'라고 해보세요.",
-        "감정이 격해져 있다면 잠시 10분만 시간을 갖고 진정한 뒤에 이성적으로 대화를 다시 시작하세요."
-    ],
-    "상대방의 마음을 도저히 모르겠을 때": [
-        "혼자 짐작하지 마세요. 연락의 빈도보다는 '만났을 때 나를 대하는 눈빛과 태도'가 진짜 마음입니다.",
-        "밀당보다는 솔직함이 답일 때가 많습니다. 가볍게 당신의 호감을 먼저 표현해 보세요.",
-        "상대방도 당신의 마음을 몰라서 망설이고 있는 것일지도 모릅니다."
-    ]
-}
+# --- 4. 세션 상태 초기화 (대화 기록 유지) ---
+# 모델의 자체 채팅 객체(문맥 유지용)와 UI 표시용 메시지 리스트를 각각 저장
+if "chat_session" not in st.session_state:
+    st.session_state.chat_session = model.start_chat(history=[])
+    st.session_state.messages = []
 
-# 5. 결과 출력 로직
-if situation != "선택하세요":
-    st.subheader("🔮 AI 코치의 맞춤 처방전")
-    
-    # 선택한 상황에 맞는 조언들 중 하나를 랜덤으로 뽑아서 보여줌
-    advice_list = coaching_responses[situation]
-    selected_advice = random.choice(advice_list)
-    
-    # 예쁜 박스 안에 조언 출력
-    st.info(selected_advice)
-    
-    # 응원 문구 추가
-    st.success("당신의 사랑을 응원합니다! 화이팅! 🔥")
-else:
-    st.write("💡 위 드롭다운 메뉴에서 고민을 선택하시면 코칭이 시작됩니다.")
+# 기존 대화 기록을 화면에 출력
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-st.divider()
-st.caption("Made with ❤️ by 방구석 코치")
+# --- 5. 사용자 입력 및 챗봇 응답 처리 ---
+if prompt := st.chat_input("연애 고민을 적어주세요..."):
+    
+    # 1) 사용자 메시지를 UI에 표시하고 세션에 저장
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    st.session_state.messages.append({"role": "user", "content": prompt})
+
+    # 2) Gemini API 호출 및 응답 출력 (오류 처리 포함)
+    with st.chat_message("assistant"):
+        try:
+            # 대화 문맥을 유지하며 메시지 전송
+            response = st.session_state.chat_session.send_message(prompt)
+            st.markdown(response.text)
+            
+            # 모델의 응답을 세션에 저장
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
+            
+        except Exception as e:
+            # API 호출 실패, 네트워크 오류 등의 예외 처리
+            st.error("앗, 답변을 생성하는 중에 문제가 발생했어요. 😢")
+            st.warning(f"오류 내용: {e}")
+            st.info("잠시 후 다시 시도해주시거나, API 키가 유효한지 확인해주세요.")
