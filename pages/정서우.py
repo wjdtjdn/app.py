@@ -1,103 +1,111 @@
-import random
 import streamlit as st
+import google.generativeai as genai
 
-# --- 페이지 설정 ---
+# 1. 페이지 기본 설정 및 스타일 초기화
 st.set_page_config(
-    page_title="디지털 디톡스: 스마트폰 중독 진단",
-    page_icon="📱",
-    layout="centered",
+    page_title="스마트폰 정뚝떨 프로젝트",
+    page_icon="🚫",
+    layout="centered"
 )
 
-# --- 세션 상태 초기화 ---
-if "test_submitted" not in st.session_state:
-    st.session_state.test_submitted = False
-if "random_mission" not in st.session_state:
-    st.session_state.random_mission = ""
+# 세션 상태 초기화 (CSS 스타일 제어용)
+if "ugly_style" not in st.session_state:
+    st.session_state.ugly_style = "normal"
 
-# --- 디지털 디톡스 미션 리스트 ---
-MISSIONS = [
-    "📱 식사할 때 스마트폰 보지 않고 음식 맛에 집중하기",
-    "🛏️ 침대에 눕기 30분 전에는 스마트폰 멀리 두기",
-    "🚶 1시간 동안 스마트폰 없이 산책하거나 가벼운 운동하기",
-    "🔇 불필요한 앱 알림(특히 SNS) 모두 끄기",
-    "📚 스마트폰 대신 책이나 잡지 10페이지 읽기",
-    "🧼 스마트폰 화면 깨끗하게 닦고 1시간 동안 홈 화면 안 열기",
-]
+# CSS 효과 반영을 위한 고정 주입
+if st.session_state.ugly_style == "monochrome":
+    st.markdown("<style>html, body, [data-testid=\"stAppViewContainer\"] { filter: grayscale(100%) !important; }</style>", unsafe_allow_html=True)
+elif st.session_state.ugly_style == "neon_hell":
+    st.markdown("<style>html, body, [data-testid=\"stAppViewContainer\"] { background-color: #00ff00 !important; color: #ff00ff !important; font-family: 'Comic Sans MS', cursive !important; }</style>", unsafe_allow_html=True)
 
-# --- 앱 타이틀 & 헤더 ---
-st.title("📱 스마트폰 중독 진단 및 디톡스 케어")
-st.markdown(
-    """
-    혹시 눈을 뜨자마자 스마트폰을 찾으시나요? 
-    정확한 테스트를 통해 나의 스마트폰 과의존 상태를 확인하고, 맞춤형 디톡스 미션을 받아보세요!
-    """
-)
+# 2. API 키 설정 및 Gemini 초기화 (예외 처리 포함)
+ai_available = False
+try:
+    if "GEMINI_API_KEY" in st.secrets:
+        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+        ai_available = True
+    else:
+        st.sidebar.warning("🔑 Secrets에 GEMINI_API_KEY를 등록하면 AI 맞춤형 잔소리 기능을 사용할 수 있습니다.")
+except Exception as e:
+    st.sidebar.error(f"API 로드 중 오류 발생: {e}")
+
+# --- 메인 화면 레이아웃 ---
+st.title("🚫 스마트폰 정뚝떨(정두두둑) 프로젝트")
+st.subtitle("스마트폰 화면을 세상에서 가장 보기 싫게 만들어 중독을 치료하세요!")
 st.write("---")
 
-# --- 테스트 문항 정의 ---
-questions = [
-    "1. 스마트폰 사용 시간을 줄이려고 시도해보았지만 실패한 적이 있다.",
-    "2. 스마트폰이 옆에 없으면 불안하거나 초조해진다.",
-    "3. 스마트폰 사용 때문에 계획했던 일(공부, 업무 등)을 미루거나 하지 못한다.",
-    "4. 스마트폰을 하느라 밤을 새우거나 수면 부족을 겪은 적이 자주 있다.",
-    "5. 스마트폰을 보지 않고 있을 때도 자꾸 알림이 온 것 같은 착각이 든다.",
-    "6. 가족이나 친구와 함께 있는 시간에도 스마트폰을 자주 본다.",
-    "7. 스마트폰 사용 시간을 스스로 통제하기 어렵다고 느낀다.",
-    "8. 스마트폰이 없으면 일상생활(길 찾기, 계산 등)이 마비될 것 같다.",
-    "9. 화장실에 갈 때 스마트폰을 챙기지 않으면 허전하고 불안하다.",
-    "10. 스마트폰 사용으로 인해 목, 손목 통증 등 신체적 불편함을 느낀 적이 있다.",
-]
+# 기능 1: 화면 테러 시뮬레이터 (체험존)
+st.header("🎨 1단계: 화면 매력도 떨어뜨리기 체험")
+st.write("스마트폰 화면을 아래 버튼들을 눌러 변형시켜 보세요. 얼마나 보기 싫어지는지 체감할 수 있습니다.")
 
-# --- 설문지 폼 영역 ---
-st.subheader("📋 자가 진단 테스트")
-st.caption("※ 각 문항에 대해 솔직하게 답변해 주세요. (점수: 전혀 아니다 1점 ~ 매우 그렇다 4점)")
+col1, col2, col3 = st.columns(3)
+with col1:
+    if st.button("⚫ 완전 흑백 모드 (도파민 차단)"):
+        st.session_state.ugly_style = "monochrome"
+        st.rerun()
+with col2:
+    if st.button("🤢 눈 테러 형광 모드"):
+        st.session_state.ugly_style = "neon_hell"
+        st.rerun()
+with col3:
+    if st.button("🔄 원래대로 되돌리기"):
+        st.session_state.ugly_style = "normal"
+        st.rerun()
 
-# 사용자 응답을 저장할 리스트
-responses = []
+st.info("💡 **실제 스마트폰 꿀팁:** 아이폰/갤럭시의 '설정 -> 접근성'에서 화면을 **흑백(그레이스케일)**으로 바꾸는 것만으로도 스마트폰 흥미가 70% 이상 떨어집니다.")
+st.write("---")
 
-with st.form(key="addiction_test_form"):
-    for idx, q in enumerate(questions):
-        response = st.radio(
-            q,
-            options=[1, 2, 3, 4],
-            format_func=lambda x: {
-                1: "전혀 아니다 (1점)",
-                2: "아니다 (2점)",
-                3: "그렇다 (3점)",
-                4: "매우 그렇다 (4점)",
-            }[x],
-            index=1,  # 기본값: 아니다
-            key=f"q_{idx}",
-        )
-        responses.append(response)
+# 기능 2: 나의 스마트폰 매력도 자가진단
+st.header("📊 2단계: 내 폰은 얼마나 중독적인가?")
+st.write("현재 스마트폰 상태를 체크해보세요.")
 
-    # 제출 버튼
-    submit_button = st.form_submit_button(label="📊 결과 분석하기")
+app_count = st.slider("홈 화면에 나와있는 앱(아이콘)의 개수는?", 0, 50, 15)
+has_red_badge = st.checkbox("앱 아이콘 위에 빨간색 알림 숫자(배지)가 항상 떠 있다.")
+bright_wallpaper = st.checkbox("화려하고 밝은 연예인, 풍경, 캐릭터 배경화면을 쓰고 있다.")
 
-# --- 결과 처리 영역 ---
-if submit_button:
-    st.session_state.test_submitted = True
-    st.session_state.random_mission = random.choice(MISSIONS)
+if st.button("진단 결과 보기"):
+    score = 0
+    if app_count > 20: score += 30
+    if has_red_badge: score += 40
+    if bright_wallpaper: score += 30
+    
+    st.subheader(f"당신의 스마트폰 중독 유발 점수: **{score}점**")
+    if score >= 70:
+        st.error("🚨 위험! 당신의 폰은 뇌를 유혹하는 최적의 도파민 공장입니다. 당장 화면을 숨겨야 합니다!")
+    elif score >= 40:
+        st.warning("⚠️ 주의! 보기 좋은 떡이 먹기도 좋다고, 폰이 너무 예뻐서 자꾸 손이 가네요.")
+    else:
+        st.success("✅ 훌륭합니다! 상당히 지루한 형태의 폰을 유지하고 계시군요.")
 
-if st.session_state.test_submitted:
-    total_score = sum(responses)
-    max_score = len(questions) * 4
-    min_score = len(questions) * 1
+st.write("---")
 
-    st.write("---")
-    st.subheader("📊 당신의 진단 결과")
+# 기능 3: AI 디톡스 잔소리 빌더 (Gemini 2.5 Flash Lite)
+st.header("🤖 3단계: AI 맞춤형 '정뚝떨' 솔루션")
+st.write("가장 끊기 힘든 앱이나 주 사용 목적을 입력하면, AI가 해당 화면을 꼴도 보기 싫게 만드는 기발한 방법을 처방해 드립니다.")
 
-    # 점수 시각화 (Progress Bar 계산을 위해 0~1 사이로 정규화)
-    progress_val = (total_score - min_score) / (max_score - min_score)
-    st.progress(progress_val)
+user_target_app = st.text_input("끊고 싶은 앱 이름이나 스마트폰 습관을 입력하세요:", placeholder="예: 인스타그램 릴스, 유튜브 쇼츠, 밤새 웹툰 보기")
 
-    # 결과 분석 및 등급 지정
-    if total_score <= 18:
-        status = "🟢 안전 (스마트폰의 주인이십니다)"
-        color = "green"
-        jail_time = "0초"
-        advice = "스마트폰을 매우 건강하게 사용하고 계십니다. 지금처럼 훌륭한 균형을 유지하세요!"
-    elif total_score <= 28:
-        status = "🟡 주의 (조금씩 중독의 늪으로...)"
-        color = "orange"
-        jail_time = "3
+if st.button("🤖 AI 처방전 받기"):
+    if not ai_available:
+        st.error("💡 AI 기능을 사용하려면 Streamlit Cloud의 Secrets에 `GEMINI_API_KEY`를 설정해야 합니다. (하단 가이드 참고)")
+    elif not user_target_app.strip():
+        st.warning("내용을 입력해 주세요!")
+    else:
+        with st.spinner("AI 의사 선생님이 독설 처방전을 작성 중입니다..."):
+            try:
+                # 규칙에 명시된 gemini-2.5-flash-lite 모델 사용
+                model = genai.GenerativeModel("gemini-2.5-flash-lite")
+                
+                prompt = f"""
+                사용자는 스마트폰 중독(특히 '{user_target_app}')에서 벗어나고 싶어합니다.
+                스마트폰 화면이나 해당 앱을 '보기 싫고, 지루하고, 매력 없게' 만들어서 사용자가 폰을 닫게 만드는 기발하고 구체적인 솔루션 3가지를 제안해주세요.
+                유머러스하면서도 약간의 독설을 섞어, 가독성 좋게 이모지를 섞어서 작성해주세요.
+                """
+                
+                response = model.generate_content(prompt)
+                
+                st.subheader("💊 AI의 눈물 쏙 빼는 정뚝떨 처방전")
+                st.markdown(response.text)
+                
+            except Exception as e:
+                st.error(f"AI 응답 생성 중 오류가 발생했습니다: {e}")
