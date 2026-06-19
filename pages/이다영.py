@@ -49,11 +49,11 @@ st.markdown("""
         margin-bottom: 12px;
     }
     </style>
-""", unsafe_allowed_html=True)
+""", unsafe_allow_html=True)
 
 # --- 상단 레이아웃 (네이버 로고 및 검색창) ---
-st.markdown('<div class="naver-header">NAVER Mind</div>', unsafe_allowed_html=True)
-st.markdown('<div class="naver-sub">스마트폰을 내려놓고, 진짜 나의 삶을 검색해보세요.</div>', unsafe_allowed_html=True)
+st.markdown('<div class="naver-header">NAVER Mind</div>', unsafe_allow_html=True)
+st.markdown('<div class="naver-sub">스마트폰을 내려놓고, 진짜 나의 삶을 검색해보세요.</div>', unsafe_allow_html=True)
 
 # 검색창 기능 (네이버 스타일 검색 바)
 search_query = st.text_input("🔍 디지털 디톡스 관련 정보나 예방법을 검색해보세요!", placeholder="예: 스마트폰 중독 자가진단, 도파민 단식, 주말 취미 추천")
@@ -68,7 +68,7 @@ col1, col2, col3 = st.columns([2, 3, 2])
 
 # [왼쪽 열: 각종 뉴스 및 칼럼]
 with col1:
-    st.markdown('<div class="news-title">📰 데일리 디톡스 뉴스</div>', unsafe_allowed_html=True)
+    st.markdown('<div class="news-title">📰 데일리 디톡스 뉴스</div>', unsafe_allow_html=True)
     
     news_list = [
         ("IT", "⚠️ '화면 너머의 세상'… 청소년 스마트폰 중독 심각성 경고", "https://www.nia.or.kr"),
@@ -80,13 +80,13 @@ with col1:
     for category, title, link in news_list:
         st.caption(f"[{category}]")
         st.markdown(f"[{title}]({link})")
-        st.markdown("<div style='margin-bottom:10px;'></div>", unsafe_allowed_html=True)
+        st.markdown("<div style='margin-bottom:10px;'></div>", unsafe_allow_html=True)
 
 # [중앙 열: 메인 기능 - 스마트폰 중독 자가진단]
 with col2:
-    st.markdown('<div class="news-title">📊 1분 스마트폰 중독 자가진단</div>', unsafe_allowed_html=True)
+    st.markdown('<div class="news-title">📊 1분 스마트폰 중독 자가진단</div>', unsafe_allow_html=True)
     
-    # 렉 방지를 위해 불필요한 계산 없이 간단한 폼 구성
+    # 렉 방지를 위해 st.form 적용
     with st.form(key='diagnosis_form'):
         q1 = st.checkbox("1. 스마트폰이 없으면 불안하거나 초조하다.")
         q2 = st.checkbox("2. 스마트폰 사용 시간을 줄이려고 시도했으나 실패했다.")
@@ -117,21 +117,21 @@ with col3:
                 <button style="background-color: #03C75A; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">자세히 보기</button>
             </a>
         </div>
-    """, unsafe_allowed_html=True)
+    """, unsafe_allow_html=True)
     
     # 게임/대안 활동 사이트 바로가기
-    st.markdown('<div class="news-title">🎮 스마트폰 대신 할 수 있는 곳</div>', unsafe_allowed_html=True)
+    st.markdown('<div class="news-title">🎮 스마트폰 대신 할 수 있는 곳</div>', unsafe_allow_html=True)
     st.markdown("📱 **스마트폰 게임 대신 두뇌를 쓰는 건전한 대안 사이트 리스트입니다.**")
     
     st.link_button("🧩 스도쿠/퍼즐 게임 하러가기", "https://www.websudoku.com/")
     st.link_button("🌐 스마트폰 중독 상담 (스마트쉼센터)", "https://www.iapc.or.kr/")
     st.link_button("🏃 국민체력 100 (운동 루틴 찾기)", "https://nfa.kspo.or.kr/")
 
-# --- 하단 푸터 (네이버 스타일 푸터 적용) ---
+# --- 하단 푸터 (네이버 푸터 스타일 및 최하단 unsafe_allow_html 수정완료) ---
 st.markdown("---")
 st.markdown(
     f"<div style='text-align: center; color: #888; font-size: 12px;'>"
     f"Copyright © <b>NAVER Mind Corp.</b> All Rights Reserved. (현재 접속 시간: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')})"
     f"</div>", 
-    unsafe_allowed_html=True
+    unsafe_allow_html=True
 )
