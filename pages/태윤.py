@@ -1,4 +1,4 @@
-import streamlit as tf
+import streamlit as st
 import random
 
 # 1. 페이지 기본 설정
